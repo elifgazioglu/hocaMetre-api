@@ -3,11 +3,6 @@ const { Schema } = mongoose;
 
 const teacherSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     name: {
       type: String,
       required: true,
@@ -16,31 +11,15 @@ const teacherSchema = new Schema(
       type: String,
       required: true,
     },
-    about: {
+    university: {
       type: String,
       required: true,
     },
-    education: [
-      {
-        university: {
-          type: String,
-          required: true,
-        },
-        department: {
-          type: String,
-          required: true,
-        },
-        startDate: {
-          type: Date,
-          required: true,
-        },
-        endDate: {
-          type: Date,
-          required: true,
-        },
-      },
-    ],
-    subjects: {
+    faculty: {
+      type: String,
+      required: true,
+    },
+    department: {
       type: String,
       required: true,
     },
