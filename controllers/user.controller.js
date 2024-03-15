@@ -5,44 +5,58 @@ import createError from "../utils/createError.js";
 
 // GET USER
 export const getUser = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.params.id);
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(500).json(err);
-  }
+  res.status(200).send(req.user);
 };
 
 //DELETE
 export const deleteUser = async (req, res, next) => {
-  const user = await User.findById(req.params.id);
-
-  if (req.userId !== user._id.toString()) {
-    return res.status(403).send("You can delete only your account!");
-  }
-
-  await User.findByIdAndDelete(req.params.id);
+  await User.findByIdAndDelete(req.userId);
   res.status(200).send("deleted.");
 };
 
 //UPDATE
 export const updateUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.userId);
 
-    if (req.userId !== user._id.toString()) {
-      return next(createError(403, "You can update only your account!"));
-    }
-
-    const { name, lastName } = req.body;
+    const { name, lastName, profilePic } = req.body;
 
     if (name) user.name = name;
     if (lastName) user.lastName = lastName;
+    if (profilePic) user.profilePic = profilePic;
 
     await user.save();
 
     res.status(200).send(user);
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
+
+export const getUserSlug = async (req,res) => {
+  const slug = req.params.slug;
+   try{
+    const user = await User.findOne({ slug });
+   } catch(error){
+    console.log(error);
+   }
+}
+
+export const loginUser = async (req,res,next) => {
+  try{
+    const {email,password} =req.body;
+
+    const user = await User.findOne({email});
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw createError(401, "Invalid email or password");
+    }
+    const token = jwt.sign({ userId: user._id }, "", {
+      expiresIn: "1h",
+    });
+    res.status(200).json({ token, user });
+  } catch(err){
+
+  }
+}
+
