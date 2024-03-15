@@ -1,9 +1,9 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import createError from "../utils/createError.js";
 
 // REGISTER
-
 export const register = async (req, res, next) => {
   try {
     const formattedName =
@@ -37,18 +37,36 @@ export const register = async (req, res, next) => {
 };
 
 //LOGIN
-
 export const login = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) return next(createError(404, "User not found!"));
-  } catch {
-    console.og(err);
+
+    const isCorrect = bcrypt.compareSync(req.body.password, user.password);
+    if (!isCorrect)
+      return next(createError(404, "Wrong password or username!"));
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_KEY);
+
+    const { password, ...info } = user._doc; //password = password, the rest of the "user" information is passed to the "info"
+    res.cookie("accessToken", token, { httpOnly: true }).status(200).send(info);
+  } catch (err) {
+    console.log(err);
   }
 };
 
-// GET EMAIL
+//LOGOUT
+export const logout = async (req, res) => {
+  res
+    .clearCookie("accessToken", {
+      sameSite:"none",
+      secure:true
+    })
+    .status(200)
+    .send("User has been logged out.");
+};
 
+// GET EMAIL
 export const getEmail = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.params.email });
